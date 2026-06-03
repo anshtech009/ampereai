@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import API_BASE from '../config';
 
 const AppContext = createContext();
 export const useApp = () => useContext(AppContext);
 
-const API = 'http://localhost:5000/api';
+const API = `${API_BASE}/api`;
 
 export const AppProvider = ({ children }) => {
   const [appliances, setAppliances] = useState([]);

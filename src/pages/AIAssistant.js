@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { calcEnergy, getMonthlyBill, TARIFFS } from "../utils/electricity";
 import { Send, Sparkles, User, Zap } from "lucide-react";
+import API_BASE from "../config";
 
 const SUGGESTIONS = [
   "Which appliance costs me the most?",
@@ -75,7 +76,7 @@ export default function AIAssistant() {
     }));
 
     try {
-      const response = await fetch("http://localhost:5000/api/ai/chat", {
+      const response = await fetch(`${API_BASE}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
