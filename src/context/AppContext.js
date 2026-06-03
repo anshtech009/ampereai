@@ -11,6 +11,17 @@ export const AppProvider = ({ children }) => {
   const [billHistory, setBillHistory] = useState([]);
   const [state, setState] = useState('odisha');
   const [loading, setLoading] = useState(true);
+  const [serverWaking, setServerWaking] = useState(false);
+  const [dots, setDots] = useState('');
+
+  // Animate the dots on the waking screen
+  useEffect(() => {
+    if (!serverWaking) return;
+    const interval = setInterval(() => {
+      setDots(d => d.length >= 3 ? '' : d + '.');
+    }, 500);
+    return () => clearInterval(interval);
+  }, [serverWaking]);
 
   // Fetch appliances from backend
   const fetchAppliances = async () => {
@@ -18,7 +29,6 @@ export const AppProvider = ({ children }) => {
       const res = await fetch(`${API}/appliances`);
       const data = await res.json();
       if (data.length === 0) {
-        // Seed default appliances if empty
         const defaults = [
           { name: 'Ceiling Fan', wattage: 75, hoursPerDay: 8, category: 'Fan' },
           { name: 'LED TV', wattage: 120, hoursPerDay: 5, category: 'Entertainment' },
@@ -58,8 +68,15 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
+
+      // If server takes more than 3 seconds, show waking screen
+      const wakingTimer = setTimeout(() => setServerWaking(true), 3000);
+
       await fetchAppliances();
       await fetchBillHistory();
+
+      clearTimeout(wakingTimer);
+      setServerWaking(false);
       setLoading(false);
     };
     loadData();
@@ -116,12 +133,63 @@ export const AppProvider = ({ children }) => {
         background: '#000',
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         color: 'white',
-        fontSize: '16px'
+        gap: '16px',
+        padding: '24px',
+        textAlign: 'center',
       }}>
-        ⚡ Loading AmperAI...
+        <div style={{ fontSize: '48px' }}>⚡</div>
+        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>AmperAI</div>
+
+        {serverWaking ? (
+          <>
+            <div style={{
+              fontSize: '14px',
+              color: '#60a5fa',
+              marginTop: '8px',
+            }}>
+              Waking up the server{dots}
+            </div>
+            <div style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.4)',
+              maxWidth: '260px',
+              lineHeight: '1.6',
+            }}>
+              The server goes to sleep after inactivity. This takes up to 60 seconds. Please wait ☕
+            </div>
+            {/* Progress bar */}
+            <div style={{
+              width: '220px',
+              height: '3px',
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '999px',
+              overflow: 'hidden',
+              marginTop: '8px',
+            }}>
+              <div style={{
+                height: '100%',
+                width: '40%',
+                background: 'linear-gradient(90deg, #3b82f6, #06b6d4)',
+                borderRadius: '999px',
+                animation: 'slide 1.5s ease-in-out infinite',
+              }} />
+            </div>
+            <style>{`
+              @keyframes slide {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(350%); }
+              }
+            `}</style>
+          </>
+        ) : (
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+            Loading AmperAI...
+          </div>
+        )}
       </div>
     );
   }
